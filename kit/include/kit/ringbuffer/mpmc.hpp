@@ -89,7 +89,8 @@ class MPMCRingBuffer {
   Slot* buffer_;
   static constexpr uint64_t capacity_ = (1ull << N);
   static constexpr uint64_t mask_ = (1ull << N) - 1;
-  std::atomic<uint64_t> head_, tail_;
+  alignas(64) std::atomic<uint64_t> head_;
+  alignas(64) std::atomic<uint64_t> tail_;
 };  // MPMCRingBuffer
 
 }  // namespace kit
