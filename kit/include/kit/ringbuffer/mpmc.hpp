@@ -16,8 +16,8 @@ class MPMCRingBuffer {
     }
   }
   ~MPMCRingBuffer() {
-    uint64_t head = head_.load(std::memory_order_acquire);
-    uint64_t tail = tail_.load(std::memory_order_acquire);
+    uint64_t head = head_.load(std::memory_order_relaxed);
+    uint64_t tail = tail_.load(std::memory_order_relaxed);
 
     for (; head != tail; ++head) {
       buffer_[head].data.~T();

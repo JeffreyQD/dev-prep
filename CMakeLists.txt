@@ -8,6 +8,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -O3")
 add_subdirectory(spdlog)
 add_subdirectory(googletest)
 add_subdirectory(benchmark)
+
+add_subdirectory(tests)
 add_subdirectory(profiles)
 
 file(GLOB Sources CONFIGURE_DEPENDS "*.cpp")
