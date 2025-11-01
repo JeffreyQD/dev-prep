@@ -1,5 +1,5 @@
-#ifndef __KIT_SPMC_HPP__
-#define __KIT_SPMC_HPP__
+#ifndef __KIT_RINGBUFFER_SPMC_HPP__
+#define __KIT_RINGBUFFER_SPMC_HPP__
 
 #include <atomic>
 
@@ -36,9 +36,8 @@ class SPMCRingBuffer {
       return false;
     }
 
-    uint64_t pos = tail & mask_;
-    new (&buffer_[pos].data) T(std::forward<Args>(args)...);
-    buffer_[pos].seq.store(tail + 1, std::memory_order_release);
+    new (&slot->data) T(std::forward<Args>(args)...);
+    slot->seq.store(tail + 1, std::memory_order_release);
     tail_.store(tail + 1, std::memory_order_release);
     return true;
   }

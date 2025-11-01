@@ -5,6 +5,7 @@
 #include <future>
 #include <iostream>
 #include <kit/ringbuffer/mpmc.hpp>
+#include <kit/ringbuffer/mpsc.hpp>
 #include <kit/ringbuffer/spmc.hpp>
 #include <kit/ringbuffer/spsc.hpp>
 #include <thread>
@@ -108,4 +109,26 @@ TEST(RingBuffer, SPMC) {
   n *= num_consumers;
   uint64_t ans = static_cast<uint64_t>(n) * (n - 1) / 2;
   ASSERT_EQ(res, ans);
+}
+
+TEST(RingBuffer, MPSC) {
+  kit::MPSCRingBuffer<int, 10> buffer;
+  int n = 1000000, num_producers = 32;
+
+  std::vector<std::jthread> producers;
+  for (int i = 0; i < num_producers; ++i) {
+    producers.emplace_back(producer_func<decltype(buffer)>, std::ref(buffer),
+                           n);
+  }
+
+  std::promise<uint64_t> p;
+  std::future<uint64_t> res = p.get_future();
+
+  std::jthread t([&]() {
+    uint64_t res = consumer_func<decltype(buffer)>(buffer, n * num_producers);
+    p.set_value(res);
+  });
+
+  uint64_t ans = static_cast<uint64_t>(n) * (n - 1) / 2 * num_producers;
+  ASSERT_EQ(res.get(), ans);
 }
