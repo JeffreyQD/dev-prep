@@ -25,6 +25,10 @@ class MPMCRingBuffer {
 
     ::operator delete(buffer_);
   }
+  MPMCRingBuffer(const MPMCRingBuffer&) = delete;
+  MPMCRingBuffer& operator=(const MPMCRingBuffer&) = delete;
+  MPMCRingBuffer(MPMCRingBuffer&&) = delete;
+  MPMCRingBuffer& operator=(MPMCRingBuffer&&) = delete;
 
   template <typename... Args>
   bool push(Args&&... args) {

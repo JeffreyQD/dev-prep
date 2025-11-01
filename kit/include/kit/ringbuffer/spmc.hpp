@@ -23,6 +23,10 @@ class SPMCRingBuffer {
     }
     ::operator delete(buffer_);
   }
+  SPMCRingBuffer(const SPMCRingBuffer&) = delete;
+  SPMCRingBuffer& operator=(const SPMCRingBuffer&) = delete;
+  SPMCRingBuffer(SPMCRingBuffer&&) = delete;
+  SPMCRingBuffer& operator=(SPMCRingBuffer&&) = delete;
 
   template <typename... Args>
   bool push(Args&&... args) {

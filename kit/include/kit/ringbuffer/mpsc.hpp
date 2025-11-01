@@ -14,6 +14,19 @@ class MPSCRingBuffer {
       buffer_[idx].seq.store(idx, std::memory_order_relaxed);
     }
   }
+  ~MPSCRingBuffer() {
+    uint64_t head = head_.load(std::memory_order_relaxed);
+    uint64_t tail = tail_.load(std::memory_order_relaxed);
+
+    for (; head != tail; ++head) {
+      buffer_[head & mask_].data.~T();
+    }
+    ::operator delete(buffer_);
+  }
+  MPSCRingBuffer(const MPSCRingBuffer&) = delete;
+  MPSCRingBuffer& operator=(const MPSCRingBuffer&) = delete;
+  MPSCRingBuffer(MPSCRingBuffer&&) = delete;
+  MPSCRingBuffer& operator=(MPSCRingBuffer&&) = delete;
 
   template <typename... Args>
   bool push(Args&&... args) {

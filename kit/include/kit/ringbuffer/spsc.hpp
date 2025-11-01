@@ -20,6 +20,10 @@ class SPSCRingBuffer {
     }
     ::operator delete(buffer_);
   }
+  SPSCRingBuffer(const SPSCRingBuffer&) = delete;
+  SPSCRingBuffer& operator=(const SPSCRingBuffer&) = delete;
+  SPSCRingBuffer(SPSCRingBuffer&&) = delete;
+  SPSCRingBuffer& operator=(SPSCRingBuffer&&) = delete;
 
   template <typename... Args>
   bool push(Args&&... args) {
