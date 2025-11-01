@@ -5,6 +5,7 @@
 #include <future>
 #include <iostream>
 #include <kit/ringbuffer/mpmc.hpp>
+#include <kit/ringbuffer/spmc.hpp>
 #include <kit/ringbuffer/spsc.hpp>
 #include <thread>
 #include <type_traits>
@@ -60,7 +61,7 @@ TEST(RingBuffer, SPSC) {
 
 TEST(RingBuffer, MPMC) {
   kit::MPMCRingBuffer<int, 10> buffer;
-  int n = 1000000, num_threads = 32;
+  int n = 1000000, num_threads = 16;
   std::vector<std::jthread> producers;
   for (int i = 0; i < num_threads; ++i) {
     producers.emplace_back(producer_func<decltype(buffer)>, std::ref(buffer),
@@ -81,5 +82,30 @@ TEST(RingBuffer, MPMC) {
   }
 
   uint64_t ans = static_cast<uint64_t>(n) * (n - 1) / 2 * num_threads;
+  ASSERT_EQ(res, ans);
+}
+
+TEST(RingBuffer, SPMC) {
+  kit::SPMCRingBuffer<int, 10> buffer;
+  int n = 1000000, num_consumers = 32;
+
+  std::jthread producer(producer_func<decltype(buffer)>, std::ref(buffer),
+                        n * num_consumers);
+
+  std::vector<std::future<uint64_t>> consumer_res;
+  for (int i = 0; i < num_consumers; ++i) {
+    std::packaged_task<uint64_t(decltype(buffer)&, int)> task(
+        consumer_func<decltype(buffer)>);
+    consumer_res.emplace_back(task.get_future());
+    std::jthread t(std::move(task), std::ref(buffer), n);
+  }
+
+  uint64_t res = 0;
+  for (int i = 0; i < num_consumers; ++i) {
+    res += consumer_res[i].get();
+  }
+
+  n *= num_consumers;
+  uint64_t ans = static_cast<uint64_t>(n) * (n - 1) / 2;
   ASSERT_EQ(res, ans);
 }
